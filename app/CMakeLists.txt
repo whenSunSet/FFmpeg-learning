@@ -17,7 +17,9 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/jni/ffmpeg/my/player.cpp)
+             src/main/jni/ffmpeg/my/player.cpp
+             src/main/jni/ffmpeg/my/decode.cpp
+             src/main/jni/ffmpeg/my/stream.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
