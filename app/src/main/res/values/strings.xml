@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FFmpeg-learning</string>
+    <string name="title_activity_texture_camera_preview">TextureCameraPreviewActivity</string>
 </resources>

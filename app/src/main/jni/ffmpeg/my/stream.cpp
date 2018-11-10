@@ -12,10 +12,9 @@ extern "C"
 #include "libavformat/avformat.h"
 #include "libavutil/log.h"
 
+#include "libavutil/mathematics.h"
 }
-namespace whensunset{
-#include <time.h>
-}
+
 #define LOGE(format, ...)  __android_log_print(ANDROID_LOG_ERROR, "(>_<)", format, ##__VA_ARGS__)
 #define LOGI(format, ...)  __android_log_print(ANDROID_LOG_INFO,  "(^_^)", format, ##__VA_ARGS__)
 
@@ -150,6 +149,8 @@ Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_pushStream(JNIEnv *env
         if (ret < 0) {
             LOGE( "Could not open output URL '%s'", output_str);
             avformat_close_input(&ifmt_ctx);
+            char buf2[500] = {0};
+            av_strerror(ret, buf2, 1024);
             /* close output */
             if (ofmt_ctx && !(ofmt->flags & AVFMT_NOFILE))
                 avio_close(ofmt_ctx->pb);
@@ -211,8 +212,10 @@ Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_pushStream(JNIEnv *env
         out_stream = ofmt_ctx->streams[pkt.stream_index];
         /* copy packet */
         //Convert PTS/DTS
-//        pkt.pts = av_rescale_q_rnd(pkt.pts, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
-//        pkt.dts = av_rescale_q_rnd(pkt.dts, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
+//        pkt.pts = whensunset::av_rescale_q_rnd(pkt.pts, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
+//        pkt.dts = whensunset::av_rescale_q_rnd(pkt.dts, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
+        pkt.pts = av_rescale_q(pkt.pts, in_stream->time_base, out_stream->time_base);
+        pkt.dts = av_rescale_q(pkt.dts, in_stream->time_base, out_stream->time_base);
         pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base, out_stream->time_base);
         pkt.pos = -1;
         //Print to Screen

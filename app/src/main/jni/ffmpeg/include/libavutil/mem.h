@@ -174,6 +174,8 @@
  */
 
 /**
+ * 解析网址：https://blog.csdn.net/leixiaohua1020/article/details/41176777
+ * 以 size为大小在申请内存的时候进行内存对齐。
  * Allocate a memory block with alignment suitable for all memory accesses
  * (including vectors if available on the CPU).
  *

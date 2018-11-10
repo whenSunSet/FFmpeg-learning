@@ -2029,6 +2029,7 @@ AVInputFormat  *av_iformat_next(const AVInputFormat  *f);
 AVOutputFormat *av_oformat_next(const AVOutputFormat *f);
 
 /**
+ * 给 AVFormatContext 分配内存，avformat_free_context() 可用于释放全部内存
  * Allocate an AVFormatContext.
  * avformat_free_context() can be used to free the context and everything
  * allocated by the framework within it.
@@ -2207,14 +2208,19 @@ int av_probe_input_buffer(AVIOContext *pb, AVInputFormat **fmt,
                           unsigned int offset, unsigned int max_probe_size);
 
 /**
+ * 打开一个输入流，然后读取他的 header。 编解码器没有打开。
+ * 这个 stream 必须使用avformat_close_input()来关闭
  * Open an input stream and read the header. The codecs are not opened.
  * The stream must be closed with avformat_close_input().
- *
+ * @param ps 用户提供的AVFormatContext 指针(使用avformat_alloc_context()来申请内存的)
+ * 可以为 null，此时AVFormatContext 会在本方法中被申请，然后写入 ps 中。
  * @param ps Pointer to user-supplied AVFormatContext (allocated by avformat_alloc_context).
  *           May be a pointer to NULL, in which case an AVFormatContext is allocated by this
  *           function and written into ps.
  *           Note that a user-supplied AVFormatContext will be freed on failure.
+ * @param url stream 的 url
  * @param url URL of the stream to open.
+ * @param
  * @param fmt If non-NULL, this parameter forces a specific input format.
  *            Otherwise the format is autodetected.
  * @param options  A dictionary filled with AVFormatContext and demuxer-private options.
@@ -2231,6 +2237,9 @@ attribute_deprecated
 int av_demuxer_open(AVFormatContext *ic);
 
 /**
+ * 读取多媒体文件中的包，来获取 stream 的信息。这个对没有 header 的文件封装格式有效，比如 mpeg。
+ * 这个方法在 mpeg-2 的情形下还会计算真实的帧速率以替代 frame mode
+ *  这个函数不会改变逻辑文件的位置;已检查的数据包可能会被缓冲以备稍后处理。
  * Read packets of a media file to get stream information. This
  * is useful for file formats with no headers such as MPEG. This
  * function also computes the real framerate in case of MPEG-2 repeat
@@ -2789,12 +2798,15 @@ void av_url_split(char *proto,         int proto_size,
 
 
 /**
+ * 输出input 和 output数据流的封装信息，例如时长、比特率、streams、容器、programs、元数据、side data、编解码器、时间轴
  * Print detailed information about the input or output format, such as
  * duration, bitrate, streams, container, programs, metadata, side data,
  * codec and time base.
  *
  * @param ic        the context to analyze
+ * @param index 标记那一条 stream 需要把信息取出来
  * @param index     index of the stream to dump information about
+ * @param url 信息的输出文件
  * @param url       the URL to print, such as source or destination file
  * @param is_output Select whether the specified context is an input(0) or output(1)
  */

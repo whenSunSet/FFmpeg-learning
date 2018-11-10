@@ -17,6 +17,9 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
+             src/main/jni/ffmpeg/my/ffmpeg_sample_three
+             src/main/jni/ffmpeg/my/ffmpeg_sample_two
+             src/main/jni/ffmpeg/my/ffmpeg_sample_one
              src/main/jni/ffmpeg/my/player.cpp
              src/main/jni/ffmpeg/my/decode.cpp
              src/main/jni/ffmpeg/my/stream.cpp)

@@ -415,22 +415,35 @@ int avio_close_dir(AVIODirContext **s);
 void avio_free_directory_entry(AVIODirEntry **entry);
 
 /**
+ * 为 数据缓冲io 申请和初始化 AVIOContext，这个最后需要被 av_free() 释放掉
  * Allocate and initialize an AVIOContext for buffered I/O. It must be later
  * freed with av_free().
  *
+ * 对buffer内存块中进行 input/output 的操作是通过AVIOContext来进行的，
+ *
+ * @param buffer 必须是通过 av_malloc() 或者类似的方法申请的。它可能被释放然后被 libavformat 中创建的新的缓冲区替换
+ * AVIOContext.buffer 在使用的时候会持有 buffer，它最终必须使用 av_free() 释放
  * @param buffer Memory block for input/output operations via AVIOContext.
  *        The buffer must be allocated with av_malloc() and friends.
  *        It may be freed and replaced with a new buffer by libavformat.
  *        AVIOContext.buffer holds the buffer currently in use,
  *        which must be later freed with av_free().
+ * @param buffer_size 是 buffer 的大小，它非常重要，对于某个协议来说，这个协议会有固定的 buffer 的 size，这个时候应该设置成这个。
+ * 至于其他的来说，size 的典型大小是 缓冲页 的大小，例如 4kb
  * @param buffer_size The buffer size is very important for performance.
  *        For protocols with fixed blocksize it should be set to this blocksize.
  *        For others a typical size is a cache page, e.g. 4kb.
+ * @param write_flag 1表示 buffer 是可写的，0表示其他情况
  * @param write_flag Set to 1 if the buffer should be writable, 0 otherwise.
+ * @param opaque 一个 opaque pointer 表示一个用户定义的数据结构，因为 c 中无类型，所以这里用 void 指针来指向这个数据结构，
+ * 最后会在 read_packet() 和 write_packet() 这两个函数指针中使用。
  * @param opaque An opaque pointer to user-specific data.
+ * @param read_packet 一个函数指针，指向一个填充 buffer 的方法，可以为 null
  * @param read_packet  A function for refilling the buffer, may be NULL.
+ * @param write_packet 一个函数指针，指向一个 将 buffer中的数据写入其他地方的方法，可以为 null，注意这里不能向输入的数据里面写
  * @param write_packet A function for writing the buffer contents, may be NULL.
  *        The function may not change the input buffers content.
+ * @param seek 一个函数指针，用于跳转到一个到数据流的某个节点。可以为 null
  * @param seek A function for seeking to specified byte position, may be NULL.
  *
  * @return Allocated AVIOContext or NULL on failure.

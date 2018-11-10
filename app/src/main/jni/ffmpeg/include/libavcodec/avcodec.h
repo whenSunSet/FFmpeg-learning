@@ -4251,9 +4251,12 @@ void avcodec_register(AVCodec *codec);
 void avcodec_register_all(void);
 
 /**
+ * 为AVCodecContext申请内存空间，并且设置默认字段，其需要使用avcodec_free_context() 来释放内存空间
  * Allocate an AVCodecContext and set its fields to default values. The
  * resulting struct should be freed with avcodec_free_context().
  *
+ * @param codec 如果不是 null，会去为codec申请私有的 data并且初始化默认值，在调用了这个方法之后如果对于 另一个 codec，调用avcodec_open2()是非法的。
+ * 如果是 null，就不会再初始化了
  * @param codec if non-NULL, allocate private data and initialize defaults
  *              for the given codec. It is illegal to then call avcodec_open2()
  *              with a different codec.
@@ -4369,18 +4372,23 @@ int avcodec_parameters_to_context(AVCodecContext *codec,
                                   const AVCodecParameters *par);
 
 /**
+ * 使用 AVCodec来初始化AVCodecContext。在使用这个方法之前，需要使用 avcodec_alloc_context3() 为AVCodecContext 申请内存
+ *  avcodec_find_decoder_by_name(), avcodec_find_encoder_by_name(),
+ * avcodec_find_decoder() and avcodec_find_encoder()上面这些方法提供了一个简单的方式来查询一个 codec
  * Initialize the AVCodecContext to use the given AVCodec. Prior to using this
  * function the context has to be allocated with avcodec_alloc_context3().
  *
  * The functions avcodec_find_decoder_by_name(), avcodec_find_encoder_by_name(),
  * avcodec_find_decoder() and avcodec_find_encoder() provide an easy way for
  * retrieving a codec.
- *
+ * @warning 这个方法不是线程安全的
  * @warning This function is not thread safe!
  *
+ * @note 在使用解码之前总是要例行得调用一次这个函数(例如调用这个函数之前 @ref avcodec_receive_frame())
  * @note Always call this function before using decoding routines (such as
  * @ref avcodec_receive_frame()).
  *
+ * 代码例子:
  * @code
  * avcodec_register_all();
  * av_dict_set(&opts, "b", "2.5M", 0);
@@ -4394,7 +4402,9 @@ int avcodec_parameters_to_context(AVCodecContext *codec,
  *     exit(1);
  * @endcode
  *
+ * @param avctx 需要初始化的 context
  * @param avctx The context to initialize.
+ * @param codec 用于打开此context的编解码器。如果不是 null，这个 codec 必须与在前面调用avcodec_alloc_context3()传入的codec是一个对象
  * @param codec The codec to open this context for. If a non-NULL codec has been
  *              previously passed to avcodec_alloc_context3() or
  *              for this context, then this parameter MUST be either NULL or
@@ -4440,11 +4450,14 @@ void avsubtitle_free(AVSubtitle *sub);
  */
 
 /**
+ * 为 AVPacket 申请内存空间并且将其的字段设置为默认值，这个结构体需要使用 av_packet_free() 来释放内存空间
  * Allocate an AVPacket and set its fields to default values.  The resulting
  * struct must be freed using av_packet_free().
  *
  * @return An AVPacket filled with default values or NULL on failure.
  *
+ * @not 这个方法只会申请AVPacket 自身的内存空间，而数据的缓冲区内存是不会申请的。
+ * 这些缓冲区内存必须使用其他方式来申请，比如说使用av_new_packet来申请
  * @note this only allocates the AVPacket itself, not the data buffers. Those
  * must be allocated through other means such as av_new_packet.
  *
@@ -4717,6 +4730,7 @@ void av_packet_rescale_ts(AVPacket *pkt, AVRational tb_src, AVRational tb_dst);
  */
 
 /**
+ * 通过编解码器的 id 来找到一个已经注册过的 解码器
  * Find a registered decoder with a matching codec ID.
  *
  * @param id AVCodecID of the requested decoder
@@ -4934,6 +4948,7 @@ int avcodec_decode_subtitle2(AVCodecContext *avctx, AVSubtitle *sub,
                             AVPacket *avpkt);
 
 /**
+ * 将一个原始数据包，作为input 给 decoder
  * Supply raw packet data as input to a decoder.
  *
  * Internally, this call will copy relevant AVCodecContext fields, which can
@@ -4986,13 +5001,23 @@ int avcodec_decode_subtitle2(AVCodecContext *avctx, AVSubtitle *sub,
 int avcodec_send_packet(AVCodecContext *avctx, const AVPacket *avpkt);
 
 /**
+ * 返回从解码器中解码过的数据
  * Return decoded output data from a decoder.
  *
  * @param avctx codec context
+ * @param frame 每一个frame会被设置一个 引用计数，(依赖于解码器的种类)，其内存是被解码器申请的。
+ * 需要注意的是注意，函数将始终调用av_frame_unref (frame)，然后再做其他事情。
  * @param frame This will be set to a reference-counted video or audio
  *              frame (depending on the decoder type) allocated by the
  *              decoder. Note that the function will always call
  *              av_frame_unref(frame) before doing anything else.
+ *
+ * @return
+ *      0:                 一个 frame 成功返回
+ *      AVERROR(EAGAIN):    在这个状态下 output 是不可用的，需要使用者重新发送一个新的input
+ *      AVERROR_EOF:       decoder 已经发送了所有的 output frame
+ *      AVERROR(EINVAL):   codec 没有被打开，获取他是一个 encoder
+ *      other negative values: 合法的解码错误
  *
  * @return
  *      0:                 success, a frame was returned
@@ -5326,6 +5351,7 @@ void av_parser_close(AVCodecParserContext *s);
 AVCodec *avcodec_find_encoder(enum AVCodecID id);
 
 /**
+ * 通过特别的名字寻找已经注册的编码器
  * Find a registered encoder with the specified name.
  *
  * @param name name of the requested encoder

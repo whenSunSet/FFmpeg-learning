@@ -40,10 +40,28 @@
             android:text="推流器" />
 
         <Button
-            android:id="@+id/trans_code"
+            android:id="@+id/texture_camera_preview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="视频转码" />
+            android:text="Texture绘制相机预览" />
+
+        <Button
+            android:id="@+id/av_io_reading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ffmpeg sample one" />
+
+        <Button
+            android:id="@+id/decode_video"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ffmpeg sample two" />
+
+        <Button
+            android:id="@+id/encode_video"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ffmpeg sample three" />
 
     </LinearLayout>
 

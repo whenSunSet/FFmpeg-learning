@@ -565,11 +565,13 @@ void    av_frame_set_color_range(AVFrame *frame, enum AVColorRange val);
 const char *av_get_colorspace_name(enum AVColorSpace val);
 
 /**
+ * 为AVFrame申请内存并赋默认值，需要使用av_frame_free()来释放内存
  * Allocate an AVFrame and set its fields to default values.  The resulting
  * struct must be freed using av_frame_free().
  *
  * @return An AVFrame filled with default values or NULL on failure.
  *
+ * @note 这个方法只会申请AVFrame自身的内存，不会申请数据缓冲区的内存，这些内存需要通过其他方式申请，例如使用av_frame_get_buffer()
  * @note this only allocates the AVFrame itself, not the data buffers. Those
  * must be allocated through other means, e.g. with av_frame_get_buffer() or
  * manually.
@@ -626,17 +628,25 @@ void av_frame_unref(AVFrame *frame);
 void av_frame_move_ref(AVFrame *dst, AVFrame *src);
 
 /**
+ * 为视频或者音频的数据申请缓冲区内存
  * Allocate new buffer(s) for audio or video data.
- *
+ * 在调用这个方法之前需要为 frame 设置下面这些字段
+ * - format(为视频提供的像素格式，为音频提供的采样格式)
+ * - 视频的宽高
+ * - 音频的两个参数nb_samples 和 channel_layout
  * The following fields must be set on frame before calling this function:
  * - format (pixel format for video, sample format for audio)
  * - width and height for video
  * - nb_samples and channel_layout for audio
  *
+ * 这个方法就将会填充 AVFrame.data 和 AVFrame.buf列表，如果需要的话还会为AVFrame.extended_data 和 AVFrame.extended_buf.
+ * 申请内存。 对于平面格式，将为每个平面分配一个缓冲区。
  * This function will fill AVFrame.data and AVFrame.buf arrays and, if
  * necessary, allocate and fill AVFrame.extended_data and AVFrame.extended_buf.
  * For planar formats, one buffer will be allocated for each plane.
  *
+ * @warning: 如果 frame 早就已经被申请内存了，那么再次调用这个方法会导致内存泄漏。
+ * 此外在某些情况下可能会出现未定义的行为
  * @warning: if frame already has been allocated, calling this function will
  *           leak memory. In addition, undefined behavior can occur in certain
  *           cases.
@@ -663,8 +673,10 @@ int av_frame_get_buffer(AVFrame *frame, int align);
 int av_frame_is_writable(AVFrame *frame);
 
 /**
+ * 确保frame数据是可写的，尽可能避免数据复制。
  * Ensure that the frame data is writable, avoiding data copy if possible.
  *
+ * 如果frame是可写的，则什么也不做，如果不是，则分配新的缓冲区并复制数据
  * Do nothing if the frame is writable, allocate new buffers and copy the data
  * if it is not.
  *

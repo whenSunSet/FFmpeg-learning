@@ -3,7 +3,7 @@
 //
 
 #include <jni.h>
-
+#include "ffmpeg_sample.h"
 extern "C"
 {
 
@@ -147,4 +147,42 @@ Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_configurationInfo(JNIE
     sprintf(info, "%s\n", avcodec_configuration());
 
     return env->NewStringUTF(info);
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleOne(JNIEnv *env,
+                                                                          jobject instance,
+                                                                          jstring inputUrl_,
+                                                                          jstring outputUrl_) {
+    const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
+    const char *outputUrl = env->GetStringUTFChars(outputUrl_, 0);
+    char *avgr[2] = {(char *) inputUrl, (char *) outputUrl};
+
+    av_io_reading(2, avgr);
+    return 1;
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleTwo(JNIEnv *env,
+                                                                          jobject instance,
+                                                                          jstring inputUrl_,
+                                                                          jstring outputUrl_) {
+    const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
+    const char *outputUrl = env->GetStringUTFChars(outputUrl_, 0);
+
+    // TODO
+
+    env->ReleaseStringUTFChars(inputUrl_, inputUrl);
+    env->ReleaseStringUTFChars(outputUrl_, outputUrl);
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleThree(JNIEnv *env,
+                                                                            jobject instance,
+                                                                            jstring inputUrl_,
+                                                                            jstring outputUrl_) {
+    const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
+    const char *outputUrl = env->GetStringUTFChars(outputUrl_, 0);
+
+    // TODO
+
+    env->ReleaseStringUTFChars(inputUrl_, inputUrl);
+    env->ReleaseStringUTFChars(outputUrl_, outputUrl);
 }

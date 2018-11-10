@@ -29,6 +29,9 @@
  */
 
 /**
+ * 从 input_filename 指向的文件中读取数据，当文件可用的时候函数内部会使用 mmap()来申请内存
+ * 如果成功了，那么*bufptr 会指向被申请的内存，*size表示的是*bufptr指向的内存的byte 大小
+ * 这里返回的 buffer内存 最后需要使用 av_file_unmap() 来释放内存
  * Read the file with name filename, and put its content in a newly
  * allocated buffer or map it with mmap() when available.
  * In case of success set *bufptr to the read or mmapped buffer, and

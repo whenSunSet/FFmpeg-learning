@@ -33,4 +33,10 @@ public class FFmpegPlayer {
   
   public native int pushStream(String inputUrl, String outputUrl);
   
+  public native int ffmpegSampleOne(String inputUrl, String outputUrl);
+  
+  public native int ffmpegSampleTwo(String inputUrl, String outputUrl);
+  
+  public native int ffmpegSampleThree(String inputUrl, String outputUrl);
+  
 }
