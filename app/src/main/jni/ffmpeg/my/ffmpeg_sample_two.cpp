@@ -37,7 +37,7 @@ extern "C" {
 #define INBUF_SIZE 4096
 
 static void pgm_save(unsigned char *buf, int wrap, int xsize, int ysize,
-                     char *filename)
+                     const char *filename)
 {
     FILE *f;
     int i;
@@ -77,11 +77,11 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt,
            free it */
         snprintf(buf, sizeof(buf), "%s-%d", filename, dec_ctx->frame_number);
         pgm_save(frame->data[0], frame->linesize[0],
-                 frame->width, frame->height, buf);
+                 frame->width, frame->height, filename);
     }
 }
 
-int decode_video(int argc, char **argv)
+int decode_video(char **argv)
 {
     const char *filename, *outfilename;
     const AVCodec *codec;
@@ -95,13 +95,10 @@ int decode_video(int argc, char **argv)
     int ret;
     AVPacket *pkt;
 
-    if (argc <= 2) {
-        fprintf(stderr, "Usage: %s <input file> <output file>\n", argv[0]);
-        exit(0);
-    }
-    filename    = argv[1];
-    outfilename = argv[2];
+    filename    = argv[0];
+    outfilename = argv[1];
 
+    avcodec_register_all();
     pkt = av_packet_alloc();
     if (!pkt)
         exit(1);
@@ -110,8 +107,8 @@ int decode_video(int argc, char **argv)
     /* set end of buffer to 0 (this ensures that no overreading happens for damaged MPEG streams) */
     memset(inbuf + INBUF_SIZE, 0, AV_INPUT_BUFFER_PADDING_SIZE);
 
-    /* find the MPEG-1 video decoder */
-    codec = avcodec_find_decoder(AV_CODEC_ID_MPEG1VIDEO);
+    /* find the hevc video decoder */
+    codec = avcodec_find_decoder_by_name("mpeg4");
     if (!codec) {
         fprintf(stderr, "Codec not found\n");
         exit(1);

@@ -33,38 +33,9 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
 #include "libavutil/file.h"
+#include "libavutil/log.h"
 }
 #include <android/log.h>
-
-#define ALOG(level, TAG, ...)    ((void)__android_log_vprint(level, TAG, __VA_ARGS__))
-
-#define SYS_LOG_TAG "heshixi"
-
-static void syslog_print(void *ptr, int level, const char *fmt, va_list vl)
-{
-    switch(level) {
-    case AV_LOG_DEBUG:
-        ALOG(ANDROID_LOG_VERBOSE, SYS_LOG_TAG, fmt, vl);
-        break;
-    case AV_LOG_VERBOSE:
-        ALOG(ANDROID_LOG_DEBUG, SYS_LOG_TAG, fmt, vl);
-        break;
-    case AV_LOG_INFO:
-        ALOG(ANDROID_LOG_INFO, SYS_LOG_TAG, fmt, vl);
-        break;
-    case AV_LOG_WARNING:
-        ALOG(ANDROID_LOG_WARN, SYS_LOG_TAG, fmt, vl);
-        break;
-    case AV_LOG_ERROR:
-        ALOG(ANDROID_LOG_ERROR, SYS_LOG_TAG, fmt, vl);
-        break;
-    }
-}
-
-static void syslog_init()
-{
-    av_log_set_callback(syslog_print);
-}
 
 struct buffer_data {
     uint8_t *ptr;
@@ -88,26 +59,19 @@ static int read_packet(void *opaque, uint8_t *buf, int buf_size)
     return buf_size;
 }
 
-int av_io_reading(int argc, char *argv[])
+int av_io_reading(char *argv[])
 {
-    syslog_init();
     AVFormatContext *fmt_ctx = NULL;
     AVIOContext *avio_ctx = NULL;
     uint8_t *buffer = NULL, *avio_ctx_buffer = NULL;
     size_t buffer_size, avio_ctx_buffer_size = 4096;
     char *input_filename = NULL;
-    char *output_filename = NULL;
     int ret = 0;
     struct buffer_data bd = { 0 };
 
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s input_file\n"
-                "API example program to show how to read from a custom buffer "
-                "accessed through AVIOContext.\n", argv[0]);
-        return 1;
-    }
     input_filename = argv[0];
-    output_filename = argv[1];
+
+    av_register_all();
 
     // 将 input_filename 指向的文件数据读取出来，然后用 buffer 指针指向他，buffer_size 中存有 buffer 内存的大小
     ret = av_file_map(input_filename, &buffer, &buffer_size, 0, NULL);
@@ -149,7 +113,7 @@ int av_io_reading(int argc, char *argv[])
         goto end;
     }
 
-    av_dump_format(fmt_ctx, 0, output_filename , 0);
+    av_dump_format(fmt_ctx, 0, input_filename, 0);
 
     end:
     avformat_close_input(&fmt_ctx);

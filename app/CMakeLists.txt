@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.4.1)
 
 add_library( myffmpeg
              SHARED
+             src/main/jni/ffmpeg/my/ffmpeg_sample_four
              src/main/jni/ffmpeg/my/ffmpeg_sample_three
              src/main/jni/ffmpeg/my/ffmpeg_sample_two
              src/main/jni/ffmpeg/my/ffmpeg_sample_one

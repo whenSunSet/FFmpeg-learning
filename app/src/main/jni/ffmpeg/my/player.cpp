@@ -6,12 +6,52 @@
 #include "ffmpeg_sample.h"
 extern "C"
 {
-
-#include <android/log.h>
-#include <libavfilter/avfilter.h>
+#include "libavfilter/avfilter.h"
 #include "libavformat/avformat.h"
 }
+
 #define LOGI(FORMAT,...) __android_log_print(ANDROID_LOG_INFO,"whensunset",FORMAT,##__VA_ARGS__);
+
+#ifdef ANDROID
+
+#include <android/log.h>
+
+#ifndef LOG_TAG
+#define  LOG_TAG    "FFMPEG"
+#endif
+
+#define  XLOGD(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#define  XLOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+
+#else
+#include <stdio.h>
+#define XLOGE(format, ...)  fprintf(stdout, LOG_TAG ": " format "\n", ##__VA_ARGS__)
+#define XLOGI(format, ...)  fprintf(stderr, LOG_TAG ": " format "\n", ##__VA_ARGS__)
+#endif  //ANDROID
+
+static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl)
+{
+    static int print_prefix = 1;
+    static int count;
+    static char prev[1024];
+    char line[1024];
+    static int is_atty;
+
+    av_log_format_line(ptr, level, fmt, vl, line, sizeof(line), &print_prefix);
+
+    strcpy(prev, line);
+    //sanitize((uint8_t *)line);
+
+    if (level <= AV_LOG_WARNING)
+    {
+        XLOGE("%s", line);
+    }
+    else
+    {
+        XLOGD("%s", line);
+    }
+}
+
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -151,13 +191,11 @@ Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_configurationInfo(JNIE
 JNIEXPORT jint JNICALL
 Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleOne(JNIEnv *env,
                                                                           jobject instance,
-                                                                          jstring inputUrl_,
-                                                                          jstring outputUrl_) {
+                                                                          jstring inputUrl_) {
     const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
-    const char *outputUrl = env->GetStringUTFChars(outputUrl_, 0);
-    char *avgr[2] = {(char *) inputUrl, (char *) outputUrl};
+    char *avgr[1] = {(char *) inputUrl};
 
-    av_io_reading(2, avgr);
+    av_io_reading(avgr);
     return 1;
 }extern "C"
 JNIEXPORT jint JNICALL
@@ -168,21 +206,49 @@ Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleTwo(JNIEnv
     const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
     const char *outputUrl = env->GetStringUTFChars(outputUrl_, 0);
 
-    // TODO
+    char *avgr[2] = {(char *) inputUrl, (char *) outputUrl};
+
+    decode_video(avgr);
 
     env->ReleaseStringUTFChars(inputUrl_, inputUrl);
     env->ReleaseStringUTFChars(outputUrl_, outputUrl);
+    return 0;
 }extern "C"
 JNIEXPORT jint JNICALL
 Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleThree(JNIEnv *env,
                                                                             jobject instance,
-                                                                            jstring inputUrl_,
-                                                                            jstring outputUrl_) {
+                                                                            jstring inputUrl_) {
+    jclass jPlayerClass = (*env).GetObjectClass(instance);
     const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
-    const char *outputUrl = env->GetStringUTFChars(outputUrl_, 0);
 
-    // TODO
+    char *avgr[1] = {(char *) inputUrl};
+
+    encode_video(avgr);
 
     env->ReleaseStringUTFChars(inputUrl_, inputUrl);
-    env->ReleaseStringUTFChars(outputUrl_, outputUrl);
+    return 0;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleFour(JNIEnv *env,
+                                                                           jobject instance,
+                                                                           jstring inputUrl_) {
+
+
+    const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
+
+    char *avgr[1] = {(char *) inputUrl};
+
+    filter_video(avgr, env, instance);
+
+    env->ReleaseStringUTFChars(inputUrl_, inputUrl);
+    return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_initFfmpegLog(JNIEnv *env,
+                                                                        jobject instance) {
+    av_log_set_callback(log_callback_null);
 }

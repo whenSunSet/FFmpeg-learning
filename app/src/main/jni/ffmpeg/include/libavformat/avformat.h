@@ -2239,7 +2239,7 @@ int av_demuxer_open(AVFormatContext *ic);
 /**
  * 读取多媒体文件中的包，来获取 stream 的信息。这个对没有 header 的文件封装格式有效，比如 mpeg。
  * 这个方法在 mpeg-2 的情形下还会计算真实的帧速率以替代 frame mode
- *  这个函数不会改变逻辑文件的位置;已检查的数据包可能会被缓冲以备稍后处理。
+ *  这个函数不会改变文件指针的逻辑上的位置;已检查的数据包可能会被缓冲以备稍后处理。
  * Read packets of a media file to get stream information. This
  * is useful for file formats with no headers such as MPEG. This
  * function also computes the real framerate in case of MPEG-2 repeat
@@ -2277,6 +2277,13 @@ AVProgram *av_find_program_from_stream(AVFormatContext *ic, AVProgram *last, int
 void av_program_add_stream_index(AVFormatContext *ac, int progid, unsigned int idx);
 
 /**
+ * 知识点：stream 是流通道，例如我们将。例如我们将 H264 和 AAC 码流存储为MP4文件的时候，就需要在 MP4文件中增加两个流通道，
+ * 一个存储Video：H264，一个存储Audio：AAC。（假设H264和AAC只包含单个流通道）
+ *
+ * 找到 文件中最适合的 stream 流通道，
+ * 最适合的流通道是根据各种启发法确定的，因为它最有可能是用户所期望的。
+ * 如果 decoder 参数不为 null，av_find_best_stream 将会为流通道的编解码器找到默认的解码器
+ * 不能找到解码器的流被忽略。
  * Find the "best" stream in the file.
  * The best stream is determined according to various heuristics as the most
  * likely to be what the user expects.
@@ -2284,19 +2291,25 @@ void av_program_add_stream_index(AVFormatContext *ac, int progid, unsigned int i
  * default decoder for the stream's codec; streams for which no decoder can
  * be found are ignored.
  *
+ * @param ic 媒体文件的句柄
  * @param ic                media file handle
+ * @param type 流 的种类，video、audio等等
  * @param type              stream type: video, audio, subtitles, etc.
+ * @param wanted_stream_nb  用户希望的流的数量，如果传-1则会默认选择
  * @param wanted_stream_nb  user-requested stream number,
  *                          or -1 for automatic selection
+ * @param related_stream 试图寻找一个关联的流，例如在同一个程序中，
  * @param related_stream    try to find a stream related (eg. in the same
  *                          program) to this one, or -1 if none
  * @param decoder_ret       if non-NULL, returns the decoder for the
  *                          selected stream
  * @param flags             flags; none are currently defined
+ * @return 如果成功了的话，就会返回流的号码，如果没有流被找到，那么返回 AVERROR_STREAM_NOT_FOUND，如果这个流没有解码器，那么返回AVERROR_DECODER_NOT_FOUND
  * @return  the non-negative stream number in case of success,
  *          AVERROR_STREAM_NOT_FOUND if no stream with the requested type
  *          could be found,
  *          AVERROR_DECODER_NOT_FOUND if streams were found but no decoder
+ * @note 如果本方法返回成功，而且 decoder_ret 不是 null，那么 *decoder_ret被保证为有效的AVCodec
  * @note  If av_find_best_stream returns successfully and decoder_ret is not
  *        NULL, then *decoder_ret is guaranteed to be set to a valid AVCodec.
  */

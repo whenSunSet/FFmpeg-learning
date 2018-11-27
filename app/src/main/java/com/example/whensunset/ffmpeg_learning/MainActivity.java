@@ -2,22 +2,21 @@ package com.example.whensunset.ffmpeg_learning;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.io.File;
-import java.io.IOException;
-
 public class MainActivity extends AppCompatActivity {
   
   FFmpegPlayer fFmpegPlayer;
   
-  TextView mShowText;
+  static TextView mShowText;
   Button mButton1;
   Button mButton2;
   Button mButton3;
@@ -25,24 +24,44 @@ public class MainActivity extends AppCompatActivity {
   Button mButton5;
   Button mButton6;
   Button mButton7;
+  Button mButton8;
   
+  static int nowY = 0;
+  static StringBuilder stringBuilder = new StringBuilder();
   @SuppressLint("HandlerLeak")
-  Handler mHandler = new Handler() {
+  static Handler mHandler = new Handler() {
     @Override
     public void handleMessage(Message msg) {
       super.handleMessage(msg);
       if (msg.what == 0) {
-        mShowText.setText("succeed!");
+        mShowText.setText("succeed!\n....");
+      } else if (msg.what == 2) {
+        int y = msg.arg1;
+        int maxY = msg.arg2;
+        String showString = (String) msg.obj;
+  
+        if (y == (maxY - 1)) {
+          mShowText.setLines(maxY);
+          mShowText.setText(stringBuilder.toString());
+          stringBuilder = new StringBuilder();
+        } else {
+          showString = showString + "\n";
+          stringBuilder.append(showString);
+        }
       } else {
         mShowText.setText("failed!");
       }
     }
   };
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     mShowText = findViewById(R.id.show);
+    mShowText.setSingleLine(false);
+    mShowText.setLineSpacing(1,0.4f);
+    mShowText.setLetterSpacing(0.4f);
     mButton1 = findViewById(R.id.hello_world);
     mButton2 = findViewById(R.id.decode_encode);
     mButton3 = findViewById(R.id.push);
@@ -50,7 +69,9 @@ public class MainActivity extends AppCompatActivity {
     mButton5 = findViewById(R.id.av_io_reading);
     mButton6 = findViewById(R.id.decode_video);
     mButton7 = findViewById(R.id.encode_video);
+    mButton8 = findViewById(R.id.filter_video);
     fFmpegPlayer = new FFmpegPlayer();
+    fFmpegPlayer.initFfmpegLog();
     
     mButton1.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -67,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
           @Override
           public void run() {
-            int code = fFmpegPlayer.decode("/storage/emulated/0/av_test/a.mp4", "/storage/emulated/0/av_test/a.yuv");
+            int code = fFmpegPlayer.decode("/storage/emulated/0/av_test/b.mp4", "/storage/emulated/0/av_test/b.yuv");
             Message message = new Message();
             message.what = code;
             mHandler.sendMessage(message);
@@ -101,34 +122,63 @@ public class MainActivity extends AppCompatActivity {
     mButton5.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        File outputFile = new File("/storage/emulated/0/av_test/outputFile.txt");
-        if (outputFile.exists()) {
-          outputFile.delete();
-          try {
-            outputFile.createNewFile();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }
-        fFmpegPlayer.ffmpegSampleOne("/storage/emulated/0/av_test/a.mkv", outputFile.getAbsolutePath());
+        fFmpegPlayer.ffmpegSampleOne("/storage/emulated/0/av_test/b.mp4");
       }
     });
     
     mButton6.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-    
-        fFmpegPlayer.ffmpegSampleTwo("", "");
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            int code = fFmpegPlayer.ffmpegSampleTwo("/storage/emulated/0/av_test/c.mpeg4", "/storage/emulated/0/av_test/c.yuv");
+            Message message = new Message();
+            message.what = code;
+            mHandler.sendMessage(message);
+          }
+        }).start();
       }
     });
-    
+  
     mButton7.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-    
-        fFmpegPlayer.ffmpegSampleThree("", "");
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            int code = fFmpegPlayer.ffmpegSampleThree("/storage/emulated/0/av_test/c.mpeg4");
+            Message message = new Message();
+            message.what = code;
+            mHandler.sendMessage(message);
+          }
+        }).start();
       }
     });
+    
+    mButton8.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+    new Thread(new Runnable() {
+          @Override
+          public void run() {
+            int code = fFmpegPlayer.ffmpegSampleFour("/storage/emulated/0/av_test/f.mp4");
+            Message message = new Message();
+            message.what = code;
+            mHandler.sendMessage(message);
+          }
+        }).start();
+      }
+    });
+  }
+  
+  public static void showText(String s, int y, int maxY) {
+    Message message = new Message();
+    message.what = 2;
+    message.obj = s;
+    message.arg1 = y;
+    message.arg2 = maxY;
+    mHandler.sendMessage(message);
   }
   
 }

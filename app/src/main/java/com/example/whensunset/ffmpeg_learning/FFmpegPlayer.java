@@ -1,5 +1,7 @@
 package com.example.whensunset.ffmpeg_learning;
 
+import android.support.annotation.Keep;
+
 /**
  * Created by whensunset on 2018/10/21.
  */
@@ -19,6 +21,8 @@ public class FFmpegPlayer {
   
   public native void playMyMedia(String url);
   
+  public native void initFfmpegLog();
+  
   public native String urlProtocolInfo();
   
   public native String avFormatInfo();
@@ -33,10 +37,16 @@ public class FFmpegPlayer {
   
   public native int pushStream(String inputUrl, String outputUrl);
   
-  public native int ffmpegSampleOne(String inputUrl, String outputUrl);
+  public native int ffmpegSampleOne(String inputUrl);
   
   public native int ffmpegSampleTwo(String inputUrl, String outputUrl);
   
-  public native int ffmpegSampleThree(String inputUrl, String outputUrl);
+  public native int ffmpegSampleThree(String inputUrl);
   
+  public native int ffmpegSampleFour(String inputUrl);
+  
+  @Keep
+  public static void showString(String showString, int y, int maxY) {
+    MainActivity.showText(showString, y, maxY);
+  }
 }

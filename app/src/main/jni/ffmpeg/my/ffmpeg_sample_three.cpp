@@ -33,7 +33,6 @@
 
 extern "C" {
 #include "libavcodec/avcodec.h"
-
 #include "libavutil/opt.h"
 #include "libavutil/imgutils.h"
 }
@@ -51,7 +50,8 @@ static void encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt,
     ret = avcodec_send_frame(enc_ctx, frame);
     if (ret < 0) {
         fprintf(stderr, "Error sending a frame for encoding\n");
-        exit(1);
+        char buf2[500] = {0};
+        av_strerror(ret, buf2, 1024);
     }
 
     while (ret >= 0) {
@@ -69,9 +69,9 @@ static void encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt,
     }
 }
 
-int main(int argc, char **argv)
+int encode_video(char **argv)
 {
-    const char *filename, *codec_name;
+    const char *filename;
     const AVCodec *codec;
     AVCodecContext *c= NULL;
     int i, ret, x, y;
@@ -80,17 +80,14 @@ int main(int argc, char **argv)
     AVPacket *pkt;
     uint8_t endcode[] = { 0, 0, 1, 0xb7 };
 
-    if (argc <= 2) {
-        fprintf(stderr, "Usage: %s <output file> <codec name>\n", argv[0]);
-        exit(0);
-    }
-    filename = argv[1];
-    codec_name = argv[2];
+    filename = argv[0];
+
+    avcodec_register_all();
 
     /* find the mpeg1video encoder */
-    codec = avcodec_find_encoder_by_name(codec_name);
+    codec = avcodec_find_encoder_by_name("mpeg4");
     if (!codec) {
-        fprintf(stderr, "Codec '%s' not found\n", codec_name);
+        fprintf(stderr, "Codec not found\n");
         exit(1);
     }
 
@@ -127,9 +124,8 @@ int main(int argc, char **argv)
         av_opt_set(c->priv_data, "preset", "slow", 0);
 
     /* open it */
-    ret = avcodec_open2(c, codec, NULL);
-    if (ret < 0) {
-        fprintf(stderr, "Could not open codec: %s\n", av_err2str(ret));
+    if (avcodec_open2(c, codec, NULL) < 0) {
+        fprintf(stderr, "Could not open codec\n");
         exit(1);
     }
 

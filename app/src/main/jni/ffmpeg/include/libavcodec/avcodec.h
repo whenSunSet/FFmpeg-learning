@@ -114,7 +114,7 @@
  *
  * In theory, sending input can result in EAGAIN - this should happen only if
  * not all output was received. You can use this to structure alternative decode
- * or encode loops other than the one suggested above. For example, you could
+ * or encode_video loops other than the one suggested above. For example, you could
  * try sending new input on each iteration, and try to receive output if that
  * returns EAGAIN.
  *
@@ -200,7 +200,7 @@
  * Identify the syntax and semantics of the bitstream.
  * The principle is roughly:
  * Two decoders with the same ID can decode the same streams.
- * Two encoders with the same ID can encode compatible streams.
+ * Two encoders with the same ID can encode_video compatible streams.
  * There may be slight deviations from the principle due to implementation
  * details.
  *
@@ -891,7 +891,7 @@ typedef struct RcOverride{
  */
 #define AV_CODEC_FLAG_LOOP_FILTER     (1 << 11)
 /**
- * Only decode/encode grayscale.
+ * Only decode/encode_video grayscale.
  */
 #define AV_CODEC_FLAG_GRAY            (1 << 13)
 /**
@@ -998,7 +998,7 @@ typedef struct RcOverride{
  * give the complete and correct output.
  *
  * NOTE: If this flag is not set, the codec is guaranteed to never be fed with
- *       with NULL data. The user can still send NULL data to the public encode
+ *       with NULL data. The user can still send NULL data to the public encode_video
  *       or decode function, but libavcodec will not pass it along to the codec
  *       unless this flag is set.
  *
@@ -1190,7 +1190,7 @@ typedef struct RcOverride{
  * give the complete and correct output.
  *
  * NOTE: If this flag is not set, the codec is guaranteed to never be fed with
- *       with NULL data. The user can still send NULL data to the public encode
+ *       with NULL data. The user can still send NULL data to the public encode_video
  *       or decode function, but libavcodec will not pass it along to the codec
  *       unless this flag is set.
  *
@@ -3764,7 +3764,7 @@ typedef struct AVCodec {
     int (*decode)(AVCodecContext *, void *outdata, int *outdata_size, AVPacket *avpkt);
     int (*close)(AVCodecContext *);
     /**
-     * Decode/encode API with decoupled packet/frame dataflow. The API is the
+     * Decode/encode_video API with decoupled packet/frame dataflow. The API is the
      * same as the avcodec_ prefixed APIs (avcodec_send_frame() etc.), except
      * that:
      * - never called if the codec is closed or the wrong type,
@@ -4312,7 +4312,7 @@ const AVClass *avcodec_get_subtitle_rect_class(void);
  * Copy the settings of the source AVCodecContext into the destination
  * AVCodecContext. The resulting destination codec context will be
  * unopened, i.e. you are required to call avcodec_open2() before you
- * can use this AVCodecContext to decode/encode video/audio data.
+ * can use this AVCodecContext to decode/encode_video video/audio data.
  *
  * @param dest target codec context, should be initialized with
  *             avcodec_alloc_context3(NULL), but otherwise uninitialized
@@ -4361,6 +4361,9 @@ int avcodec_parameters_from_context(AVCodecParameters *par,
                                     const AVCodecContext *codec);
 
 /**
+ * 基于被给予的 codec 参数，填充 codec 的 context。在 codec 中的任何字段 都在 par 中有对应的字段，
+ * 此时会将 par 在 codec 中对应的字段释放掉，然后用 par 中的字段替换
+ * codec 中独有的字段不会动
  * Fill the codec context based on the values from the supplied codec
  * parameters. Any allocated fields in codec that have a corresponding field in
  * par are freed and replaced with duplicates of the corresponding field in par.

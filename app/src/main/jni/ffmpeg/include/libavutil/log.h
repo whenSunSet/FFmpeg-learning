@@ -362,7 +362,7 @@ int av_log_format_line2(void *ptr, int level, const char *fmt, va_list vl,
  * Include the log severity in messages originating from codecs.
  *
  * Results in messages such as:
- * [rawvideo @ 0xDEADBEEF] [error] encode did not produce valid pts
+ * [rawvideo @ 0xDEADBEEF] [error] encode_video did not produce valid pts
  */
 #define AV_LOG_PRINT_LEVEL 2
 

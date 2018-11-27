@@ -959,6 +959,9 @@ int avfilter_graph_add_filter(AVFilterGraph *graphctx, AVFilterContext *filter);
 #endif
 
 /**
+ * 创建并添加一个 filter 对象添加到一个已经存在的 graph 中.
+ * filter 对象 是根据 filt 、opaque、args 创建的。
+ * 在成功的情况下 filt_ctx 会被指向 filter 对象，否则 filt_ctx 是 null
  * Create and add a filter instance into an existing graph.
  * The filter instance is created from the filter filt and inited
  * with the parameters args and opaque.
@@ -966,7 +969,9 @@ int avfilter_graph_add_filter(AVFilterGraph *graphctx, AVFilterContext *filter);
  * In case of success put in *filt_ctx the pointer to the created
  * filter instance, otherwise set *filt_ctx to NULL.
  *
+ * @param name  filter 对象的名字
  * @param name the instance name to give to the created filter instance
+ * @param graph_ctx filter graph
  * @param graph_ctx the filter graph
  * @return a negative AVERROR error code in case of failure, a non
  * negative value otherwise

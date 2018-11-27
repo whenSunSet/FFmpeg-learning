@@ -1,69 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  tools:context="com.example.whensunset.ffmpeg_learning.MainActivity">
+
+  <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context="com.example.whensunset.ffmpeg_learning.MainActivity">
+    android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+    <TextView
+      android:id="@+id/show"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:singleLine="false"
+      android:text="Hello World!"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintLeft_toLeftOf="parent"
+      app:layout_constraintRight_toRightOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/show"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hello World!"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <Button
+      android:id="@+id/hello_world"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="hello world" />
 
-        <Button
-            android:id="@+id/hello_world"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="hello world" />
+    <Button
+      android:id="@+id/decode_encode"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="编解码器" />
 
-        <Button
-            android:id="@+id/decode_encode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="编解码器" />
+    <Button
+      android:id="@+id/push"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="推流器" />
 
-        <Button
-            android:id="@+id/push"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="推流器" />
+    <Button
+      android:id="@+id/texture_camera_preview"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="Texture绘制相机预览" />
 
-        <Button
-            android:id="@+id/texture_camera_preview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Texture绘制相机预览" />
+    <Button
+      android:id="@+id/av_io_reading"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="ffmpeg sample one" />
 
-        <Button
-            android:id="@+id/av_io_reading"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ffmpeg sample one" />
+    <Button
+      android:id="@+id/decode_video"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="ffmpeg sample two" />
 
-        <Button
-            android:id="@+id/decode_video"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ffmpeg sample two" />
+    <Button
+      android:id="@+id/encode_video"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="ffmpeg sample three" />
 
-        <Button
-            android:id="@+id/encode_video"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ffmpeg sample three" />
+    <Button
+      android:id="@+id/filter_video"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="ffmpeg sample four" />
 
-    </LinearLayout>
+  </LinearLayout>
 
 
 </ScrollView>
