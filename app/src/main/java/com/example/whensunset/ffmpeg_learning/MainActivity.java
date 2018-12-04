@@ -25,16 +25,20 @@ public class MainActivity extends AppCompatActivity {
   Button mButton6;
   Button mButton7;
   Button mButton8;
+  Button mButton9;
+  Button mButton10;
   
-  static int nowY = 0;
   static StringBuilder stringBuilder = new StringBuilder();
   @SuppressLint("HandlerLeak")
   static Handler mHandler = new Handler() {
     @Override
     public void handleMessage(Message msg) {
       super.handleMessage(msg);
-      if (msg.what == 0) {
-        mShowText.setText("succeed!\n....");
+      int code = msg.what;
+      if (code == 111) {
+        mShowText.setText((CharSequence) msg.obj);
+      } else if (msg.what == 0) {
+        mShowText.setText("success");
       } else if (msg.what == 2) {
         int y = msg.arg1;
         int maxY = msg.arg2;
@@ -66,10 +70,14 @@ public class MainActivity extends AppCompatActivity {
     mButton2 = findViewById(R.id.decode_encode);
     mButton3 = findViewById(R.id.push);
     mButton4 = findViewById(R.id.texture_camera_preview);
+    
     mButton5 = findViewById(R.id.av_io_reading);
     mButton6 = findViewById(R.id.decode_video);
     mButton7 = findViewById(R.id.encode_video);
     mButton8 = findViewById(R.id.filter_video);
+    mButton9 = findViewById(R.id.demuxing_decoding_video);
+    mButton10 = findViewById(R.id.play_video);
+    
     fFmpegPlayer = new FFmpegPlayer();
     fFmpegPlayer.initFfmpegLog();
     
@@ -119,10 +127,20 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.this.startActivity(new Intent(MainActivity.this, TextureCameraPreviewActivity.class));
       }
     });
+    
     mButton5.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        fFmpegPlayer.ffmpegSampleOne("/storage/emulated/0/av_test/b.mp4");
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            String returnString = fFmpegPlayer.ffmpegSampleOne("/storage/emulated/0/av_test/b.mp4");
+            Message message = new Message();
+            message.obj = returnString;
+            message.what = 111;
+            mHandler.sendMessage(message);
+          }
+        }).start();
       }
     });
     
@@ -132,9 +150,10 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
           @Override
           public void run() {
-            int code = fFmpegPlayer.ffmpegSampleTwo("/storage/emulated/0/av_test/c.mpeg4", "/storage/emulated/0/av_test/c.yuv");
+            String returnString = fFmpegPlayer.ffmpegSampleTwo("/storage/emulated/0/av_test/c.mpeg4", "/storage/emulated/0/av_test/c.yuv");
             Message message = new Message();
-            message.what = code;
+            message.obj = returnString;
+            message.what = 111;
             mHandler.sendMessage(message);
           }
         }).start();
@@ -147,9 +166,10 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
           @Override
           public void run() {
-            int code = fFmpegPlayer.ffmpegSampleThree("/storage/emulated/0/av_test/c.mpeg4");
+            String returnString = fFmpegPlayer.ffmpegSampleThree("/storage/emulated/0/av_test/c.mpeg4");
             Message message = new Message();
-            message.what = code;
+            message.obj = returnString;
+            message.what = 111;
             mHandler.sendMessage(message);
           }
         }).start();
@@ -170,6 +190,30 @@ public class MainActivity extends AppCompatActivity {
         }).start();
       }
     });
+    
+    mButton9.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            String returnString = fFmpegPlayer.ffmpegSampleFive("/storage/emulated/0/av_test/b.mp4", "/storage/emulated/0/av_test/c1.yuv" , "/storage/emulated/0/av_test/c.mp3");
+            Message message = new Message();
+            message.obj = returnString;
+            message.what = 111;
+            mHandler.sendMessage(message);
+          }
+        }).start();
+      }
+    });
+    
+    mButton10.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        MainActivity.this.startActivity(new Intent(MainActivity.this, GameActivity.class));
+      }
+    });
+    
   }
   
   public static void showText(String s, int y, int maxY) {
@@ -180,5 +224,4 @@ public class MainActivity extends AppCompatActivity {
     message.arg2 = maxY;
     mHandler.sendMessage(message);
   }
-  
 }

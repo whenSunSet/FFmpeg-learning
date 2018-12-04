@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 extern "C" {
 #include "libavcodec/avcodec.h"
 }
@@ -37,37 +38,31 @@ extern "C" {
 #define INBUF_SIZE 4096
 
 static void pgm_save(unsigned char *buf, int wrap, int xsize, int ysize,
-                     const char *filename)
-{
+                     const char *filename) {
     FILE *f;
     int i;
 
-    f = fopen(filename,"w");
+    f = fopen(filename, "w");
     fprintf(f, "P5\n%d %d\n%d\n", xsize, ysize, 255);
     for (i = 0; i < ysize; i++)
         fwrite(buf + i * wrap, 1, xsize, f);
     fclose(f);
 }
 
-static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt,
-                   const char *filename)
-{
+static int decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt,
+                  const char *filename) {
     char buf[1024];
     int ret;
 
     ret = avcodec_send_packet(dec_ctx, pkt);
     if (ret < 0) {
-        fprintf(stderr, "Error sending a packet for decoding\n");
-        exit(1);
+        return ret;
     }
 
     while (ret >= 0) {
         ret = avcodec_receive_frame(dec_ctx, frame);
-        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-            return;
-        else if (ret < 0) {
-            fprintf(stderr, "Error during decoding\n");
-            exit(1);
+        if (ret < 0) {
+            return ret;
         }
 
         printf("saving frame %3d\n", dec_ctx->frame_number);
@@ -79,23 +74,23 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt,
         pgm_save(frame->data[0], frame->linesize[0],
                  frame->width, frame->height, filename);
     }
+    return 0;
 }
 
-int decode_video(char **argv)
-{
+char *decode_video(char **argv) {
     const char *filename, *outfilename;
     const AVCodec *codec;
     AVCodecParserContext *parser;
-    AVCodecContext *c= NULL;
+    AVCodecContext *c = NULL;
     FILE *f;
     AVFrame *frame;
     uint8_t inbuf[INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];
     uint8_t *data;
-    size_t   data_size;
+    size_t data_size;
     int ret;
     AVPacket *pkt;
 
-    filename    = argv[0];
+    filename = argv[0];
     outfilename = argv[1];
 
     avcodec_register_all();
@@ -110,20 +105,20 @@ int decode_video(char **argv)
     /* find the hevc video decoder */
     codec = avcodec_find_decoder_by_name("mpeg4");
     if (!codec) {
-        fprintf(stderr, "Codec not found\n");
-        exit(1);
+        ret = -1111;
+        goto end;
     }
 
     parser = av_parser_init(codec->id);
     if (!parser) {
-        fprintf(stderr, "parser not found\n");
-        exit(1);
+        ret = -1112;
+        goto end;
     }
 
     c = avcodec_alloc_context3(codec);
     if (!c) {
-        fprintf(stderr, "Could not allocate video codec context\n");
-        exit(1);
+        ret = -1113;
+        goto end;
     }
 
     // 对于某些 codec ，例如 msmpeg4  和 mpeg4,宽和高需要被初始化，因为这些信息在 bitstream 中是无效的
@@ -132,21 +127,20 @@ int decode_video(char **argv)
        available in the bitstream. */
 
     /* open it */
-    if (avcodec_open2(c, codec, NULL) < 0) {
-        fprintf(stderr, "Could not open codec\n");
-        exit(1);
+    if ((ret = avcodec_open2(c, codec, NULL)) < 0) {
+        goto end;
     }
 
     f = fopen(filename, "rb");
     if (!f) {
-        fprintf(stderr, "Could not open %s\n", filename);
-        exit(1);
+        ret = -1114;
+        goto end;
     }
 
     frame = av_frame_alloc();
     if (!frame) {
-        fprintf(stderr, "Could not allocate video frame\n");
-        exit(1);
+        ret = -1115;
+        goto end;
     }
 
     while (!feof(f)) {
@@ -161,18 +155,18 @@ int decode_video(char **argv)
         data = inbuf;
         while (data_size > 0) {
             // 从 data 中将数据解析成一个个 pkt 包
-            ret = av_parser_parse2(parser, c, &pkt->data, &pkt->size,
-                                   data, data_size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
-            if (ret < 0) {
-                fprintf(stderr, "Error while parsing\n");
-                exit(1);
+            if ((ret = av_parser_parse2(parser, c, &pkt->data, &pkt->size, data, data_size,
+                                        AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0)) < 0) {
+                goto end;
             }
-            data      += ret;
+            data += ret;
             data_size -= ret;
 
-            if (pkt->size)
+            if (pkt->size) {
                 // 将一个 pkt 包解析成 多个 frame
                 decode(c, frame, pkt, outfilename);
+            }
+
         }
     }
 
@@ -181,10 +175,28 @@ int decode_video(char **argv)
 
     fclose(f);
 
+    end:
     av_parser_close(parser);
     avcodec_free_context(&c);
     av_frame_free(&frame);
     av_packet_free(&pkt);
 
-    return 0;
+    if (ret < 0) {
+        char buf2[500] = {0};
+        if (ret == -1111) {
+            return (char *) "codec not found";
+        } else if (ret == -1112) {
+            return (char *) "parser not found";
+        } else if (ret == -1113) {
+            return (char *) "could not allocate video codec context";
+        } else if (ret == -1114) {
+            return (char *) "could not open input file";
+        } else if (ret == -1115) {
+            return (char *) "could not allocate video frame";
+        }
+        av_strerror(ret, buf2, 1024);
+        return buf2;
+    } else {
+        return (char *) "解码成功";
+    }
 }

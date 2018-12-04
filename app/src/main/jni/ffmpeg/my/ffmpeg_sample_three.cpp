@@ -38,47 +38,36 @@ extern "C" {
 }
 
 
-static void encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt,
-                   FILE *outfile)
-{
+static int encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt,
+                  FILE *outfile) {
     int ret;
 
     /* send the frame to the encoder */
-    if (frame)
-//        printf("Send frame %3"PRId64"\n", frame->pts);
-
-    ret = avcodec_send_frame(enc_ctx, frame);
-    if (ret < 0) {
-        fprintf(stderr, "Error sending a frame for encoding\n");
-        char buf2[500] = {0};
-        av_strerror(ret, buf2, 1024);
+    if ((ret = avcodec_send_frame(enc_ctx, frame)) < 0) {
+        return ret;
     }
 
     while (ret >= 0) {
         ret = avcodec_receive_packet(enc_ctx, pkt);
-        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-            return;
-        else if (ret < 0) {
-            fprintf(stderr, "Error during encoding\n");
-            exit(1);
-        }
 
-//        printf("Write packet %3"PRId64" (size=%5d)\n", pkt->pts, pkt->size);
+        if (ret < 0) {
+            return ret;
+        }
         fwrite(pkt->data, 1, pkt->size, outfile);
         av_packet_unref(pkt);
     }
+    return 0;
 }
 
-int encode_video(char **argv)
-{
+char *encode_video(char **argv) {
     const char *filename;
     const AVCodec *codec;
-    AVCodecContext *c= NULL;
+    AVCodecContext *c = NULL;
     int i, ret, x, y;
     FILE *f;
     AVFrame *frame;
     AVPacket *pkt;
-    uint8_t endcode[] = { 0, 0, 1, 0xb7 };
+    uint8_t endcode[] = {0, 0, 1, 0xb7};
 
     filename = argv[0];
 
@@ -88,18 +77,22 @@ int encode_video(char **argv)
     codec = avcodec_find_encoder_by_name("mpeg4");
     if (!codec) {
         fprintf(stderr, "Codec not found\n");
-        exit(1);
+        ret = -1111;
+        goto end;
     }
 
     c = avcodec_alloc_context3(codec);
     if (!c) {
         fprintf(stderr, "Could not allocate video codec context\n");
-        exit(1);
+        ret = -1112;
+        goto end;
     }
 
     pkt = av_packet_alloc();
-    if (!pkt)
-        exit(1);
+    if (!pkt) {
+        ret = -1113;
+        goto end;
+    }
 
     /* put sample parameters */
     c->bit_rate = 400000;
@@ -107,8 +100,8 @@ int encode_video(char **argv)
     c->width = 352;
     c->height = 288;
     /* frames per second */
-    c->time_base = (AVRational){1, 25};
-    c->framerate = (AVRational){25, 1};
+    c->time_base = (AVRational) {1, 25};
+    c->framerate = (AVRational) {25, 1};
 
     /* emit one intra frame every ten frames
      * check frame pict_type before passing frame
@@ -126,28 +119,29 @@ int encode_video(char **argv)
     /* open it */
     if (avcodec_open2(c, codec, NULL) < 0) {
         fprintf(stderr, "Could not open codec\n");
-        exit(1);
+        ret = -1114;
+        goto end;
     }
 
     f = fopen(filename, "wb");
     if (!f) {
         fprintf(stderr, "Could not open %s\n", filename);
-        exit(1);
+        ret = -1115;
+        goto end;
     }
 
     frame = av_frame_alloc();
     if (!frame) {
         fprintf(stderr, "Could not allocate video frame\n");
-        exit(1);
+        ret = -1116;
+        goto end;
     }
     frame->format = c->pix_fmt;
-    frame->width  = c->width;
+    frame->width = c->width;
     frame->height = c->height;
 
-    ret = av_frame_get_buffer(frame, 32);
-    if (ret < 0) {
-        fprintf(stderr, "Could not allocate the video frame data\n");
-        exit(1);
+    if ((ret = av_frame_get_buffer(frame, 32)) < 0) {
+        goto end;
     }
 
     /* encode 1 second of video */
@@ -155,9 +149,9 @@ int encode_video(char **argv)
         fflush(stdout);
 
         /* make sure the frame data is writable */
-        ret = av_frame_make_writable(frame);
-        if (ret < 0)
-            exit(1);
+        if ((ret = av_frame_make_writable(frame)) < 0) {
+            goto end;
+        }
 
         /* prepare a dummy image */
         /* Y */
@@ -168,8 +162,8 @@ int encode_video(char **argv)
         }
 
         /* Cb and Cr */
-        for (y = 0; y < c->height/2; y++) {
-            for (x = 0; x < c->width/2; x++) {
+        for (y = 0; y < c->height / 2; y++) {
+            for (x = 0; x < c->width / 2; x++) {
                 frame->data[1][y * frame->linesize[1] + x] = 128 + y + i * 2;
                 frame->data[2][y * frame->linesize[2] + x] = 64 + x + i * 5;
             }
@@ -179,6 +173,7 @@ int encode_video(char **argv)
 
         /* encode the image */
         encode(c, frame, pkt, f);
+
     }
 
     /* flush the encoder */
@@ -188,9 +183,28 @@ int encode_video(char **argv)
     fwrite(endcode, 1, sizeof(endcode), f);
     fclose(f);
 
+    end:
     avcodec_free_context(&c);
     av_frame_free(&frame);
     av_packet_free(&pkt);
-
-    return 0;
+    if (ret < 0) {
+        char buf2[500] = {0};
+        if (ret == -1111) {
+            return (char *) "codec not found";
+        } else if (ret == -1112) {
+            return (char *) "Could not allocate video codec context";
+        } else if (ret == -1113) {
+            return (char *) "could not allocate packet";
+        } else if (ret == -1114) {
+            return (char *) "Could not open codec";
+        } else if (ret == -1115) {
+            return (char *) "Could not open input file";
+        } else if (ret == -1116) {
+            return (char *) "Could not allocate video frame";
+        }
+        av_strerror(ret, buf2, 1024);
+        return buf2;
+    } else {
+        return (char *) "编码成功";
+    }
 }

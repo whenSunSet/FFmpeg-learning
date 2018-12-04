@@ -4,8 +4,10 @@
 
 #ifndef FFMPEGLEARNING_FFMPEG_SAMPLE_ONE_H
 #define FFMPEGLEARNING_FFMPEG_SAMPLE_ONE_H
-int av_io_reading(char *argv[]);
-int decode_video(char **argv);
-int encode_video(char **argv);
+char *av_io_reading(char *argv[]);
+char *decode_video(char **argv);
+char *encode_video(char **argv);
 int filter_video(char **argv, JNIEnv *env, jobject instance);
+char *demuxing_decoding(char **argv);
+int play(JNIEnv *env, jobject surface);
 #endif //FFMPEGLEARNING_FFMPEG_SAMPLE_ONE_H

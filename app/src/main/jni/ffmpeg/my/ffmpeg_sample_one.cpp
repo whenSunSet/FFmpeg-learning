@@ -35,7 +35,6 @@ extern "C" {
 #include "libavutil/file.h"
 #include "libavutil/log.h"
 }
-#include <android/log.h>
 
 struct buffer_data {
     uint8_t *ptr;
@@ -59,7 +58,7 @@ static int read_packet(void *opaque, uint8_t *buf, int buf_size)
     return buf_size;
 }
 
-int av_io_reading(char *argv[])
+char *av_io_reading(char *argv[])
 {
     AVFormatContext *fmt_ctx = NULL;
     AVIOContext *avio_ctx = NULL;
@@ -74,9 +73,9 @@ int av_io_reading(char *argv[])
     av_register_all();
 
     // 将 input_filename 指向的文件数据读取出来，然后用 buffer 指针指向他，buffer_size 中存有 buffer 内存的大小
-    ret = av_file_map(input_filename, &buffer, &buffer_size, 0, NULL);
-    if (ret < 0)
+    if ((ret = av_file_map(input_filename, &buffer, &buffer_size, 0, NULL)) < 0) {
         goto end;
+    }
 
     bd.ptr  = buffer;
     bd.size = buffer_size;
@@ -87,29 +86,23 @@ int av_io_reading(char *argv[])
     }
 
     // 申请四个字节大小的缓冲区，在后面作为内存对齐的标准使用
-    avio_ctx_buffer = (uint8_t *) av_malloc(avio_ctx_buffer_size);
-    if (!avio_ctx_buffer) {
+    if (!(avio_ctx_buffer = (uint8_t *) av_malloc(avio_ctx_buffer_size))) {
         ret = AVERROR(ENOMEM);
         goto end;
     }
 
-    avio_ctx = avio_alloc_context(avio_ctx_buffer, avio_ctx_buffer_size,
-                                  0, &bd, &read_packet, NULL, NULL);
-    if (!avio_ctx) {
+
+    if (!(avio_ctx = avio_alloc_context(avio_ctx_buffer, avio_ctx_buffer_size, 0, &bd, &read_packet, NULL, NULL))) {
         ret = AVERROR(ENOMEM);
         goto end;
     }
     fmt_ctx->pb = avio_ctx;
 
-    ret = avformat_open_input(&fmt_ctx, NULL, NULL, NULL);
-    if (ret < 0) {
-        fprintf(stderr, "Could not open input\n");
+    if ((ret = avformat_open_input(&fmt_ctx, NULL, NULL, NULL)) < 0) {
         goto end;
     }
 
-    ret = avformat_find_stream_info(fmt_ctx, NULL);
-    if (ret < 0) {
-        fprintf(stderr, "Could not find stream information\n");
+    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0) {
         goto end;
     }
 
@@ -124,12 +117,12 @@ int av_io_reading(char *argv[])
     }
     av_file_unmap(buffer, buffer_size);
 
-    char buf2[500] = {0};
-    av_strerror(ret, buf2, 1024);
-    if (ret < 0) {
-        fprintf(stderr, "Error occurred: %s\n", av_err2str(ret));
-        return 1;
-    }
 
-    return 0;
+    if (ret < 0) {
+        char buf2[500] = {0};
+        av_strerror(ret, buf2, 1024);
+        return buf2;
+    } else {
+        return (char *) "解封装成功，请查看log";
+    }
 }

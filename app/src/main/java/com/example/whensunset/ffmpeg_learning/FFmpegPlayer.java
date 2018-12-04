@@ -37,13 +37,17 @@ public class FFmpegPlayer {
   
   public native int pushStream(String inputUrl, String outputUrl);
   
-  public native int ffmpegSampleOne(String inputUrl);
+  public native String ffmpegSampleOne(String inputUrl);
   
-  public native int ffmpegSampleTwo(String inputUrl, String outputUrl);
+  public native String ffmpegSampleTwo(String inputUrl, String outputUrl);
   
-  public native int ffmpegSampleThree(String inputUrl);
+  public native String ffmpegSampleThree(String inputUrl);
   
   public native int ffmpegSampleFour(String inputUrl);
+  
+  public native String ffmpegSampleFive(String inputFile, String destVideoFile, String destAudioFile);
+  
+  public static native int play(Object surface);
   
   @Keep
   public static void showString(String showString, int y, int maxY) {

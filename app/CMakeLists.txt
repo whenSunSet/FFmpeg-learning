@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.4.1)
 
 add_library( myffmpeg
              SHARED
+             src/main/jni/ffmpeg/my/ffmpeg_sample_six
+             src/main/jni/ffmpeg/my/ffmpeg_sample_five
              src/main/jni/ffmpeg/my/ffmpeg_sample_four
              src/main/jni/ffmpeg/my/ffmpeg_sample_three
              src/main/jni/ffmpeg/my/ffmpeg_sample_two
@@ -80,5 +82,7 @@ target_link_libraries(
                        swresample-2
                        swscale-4
                        postproc-54
+                        -ljnigraphics
+                       -landroid # Add this
 
                        ${log-lib} )

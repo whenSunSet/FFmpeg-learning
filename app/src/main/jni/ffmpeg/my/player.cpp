@@ -188,17 +188,18 @@ Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_configurationInfo(JNIE
 
     return env->NewStringUTF(info);
 }extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jstring JNICALL
 Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleOne(JNIEnv *env,
                                                                           jobject instance,
                                                                           jstring inputUrl_) {
     const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
     char *avgr[1] = {(char *) inputUrl};
 
-    av_io_reading(avgr);
-    return 1;
+    char *return_string = av_io_reading(avgr);
+
+    return env->NewStringUTF(return_string);
 }extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jstring JNICALL
 Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleTwo(JNIEnv *env,
                                                                           jobject instance,
                                                                           jstring inputUrl_,
@@ -208,25 +209,26 @@ Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleTwo(JNIEnv
 
     char *avgr[2] = {(char *) inputUrl, (char *) outputUrl};
 
-    decode_video(avgr);
+    char *return_string = decode_video(avgr);
 
     env->ReleaseStringUTFChars(inputUrl_, inputUrl);
     env->ReleaseStringUTFChars(outputUrl_, outputUrl);
-    return 0;
+
+    return env->NewStringUTF(return_string);
 }extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jstring JNICALL
 Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleThree(JNIEnv *env,
                                                                             jobject instance,
                                                                             jstring inputUrl_) {
-    jclass jPlayerClass = (*env).GetObjectClass(instance);
     const char *inputUrl = env->GetStringUTFChars(inputUrl_, 0);
 
     char *avgr[1] = {(char *) inputUrl};
 
-    encode_video(avgr);
+    char *return_string = encode_video(avgr);
 
     env->ReleaseStringUTFChars(inputUrl_, inputUrl);
-    return 0;
+
+    return env->NewStringUTF(return_string);
 }
 
 extern "C"
@@ -251,4 +253,31 @@ JNIEXPORT void JNICALL
 Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_initFfmpegLog(JNIEnv *env,
                                                                         jobject instance) {
     av_log_set_callback(log_callback_null);
+}extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_ffmpegSampleFive(JNIEnv *env,
+                                                                           jobject instance,
+                                                                           jstring inputFile_,
+                                                                           jstring destVideoFile_,
+                                                                           jstring destAudioFile_) {
+    const char *inputFile = env->GetStringUTFChars(inputFile_, 0);
+    const char *destVideoFile = env->GetStringUTFChars(destVideoFile_, 0);
+    const char *destAudioFile = env->GetStringUTFChars(destAudioFile_, 0);
+
+
+    char *avgr[4] = {(char *) inputFile, (char *) destVideoFile, (char *) destAudioFile};
+
+    char *return_string = demuxing_decoding(avgr);
+
+    env->ReleaseStringUTFChars(inputFile_, inputFile);
+    env->ReleaseStringUTFChars(destVideoFile_, destVideoFile);
+    env->ReleaseStringUTFChars(destAudioFile_, destAudioFile);
+
+    return env->NewStringUTF(return_string);
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_whensunset_ffmpeg_1learning_FFmpegPlayer_play(JNIEnv *env, jclass type,
+                                                               jobject surface) {
+    play(env, surface);
+    return 0;
 }

@@ -1987,6 +1987,7 @@ const char *avformat_configuration(void);
 const char *avformat_license(void);
 
 /**
+ * 初始化 libavformat 然后 注册所有的 封装器，解封装器 和 协议。如果你调用了这个方法，那么你可以选择所有你想要支持的 音视频文件封装格式
  * Initialize libavformat and register all the muxers, demuxers and
  * protocols. If you do not call this function, then you can select
  * exactly which formats you want to support.
@@ -2321,6 +2322,7 @@ int av_find_best_stream(AVFormatContext *ic,
                         int flags);
 
 /**
+ *
  * Return the next frame of a stream.
  * This function returns what is stored in the file, and does not validate
  * that what is there are valid frames for the decoder. It will split what is

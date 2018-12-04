@@ -4490,8 +4490,10 @@ AVPacket *av_packet_clone(const AVPacket *src);
 void av_packet_free(AVPacket **pkt);
 
 /**
+ * 初始化 packet 的可选参数为默认值
  * Initialize optional fields of a packet with default values.
  *
+ * 注意，这里不会涉及到 数据字段 的初始化和 数字字段的大小的初始化，这些东西需要分开进行
  * Note, this does not touch the data and size members, which have to be
  * initialized separately.
  *

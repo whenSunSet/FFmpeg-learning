@@ -50,25 +50,37 @@
       android:id="@+id/av_io_reading"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="ffmpeg sample one" />
+      android:text="ffmpeg_读取video的封装格式" />
 
     <Button
       android:id="@+id/decode_video"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="ffmpeg sample two" />
+      android:text="ffmpeg_纯净的解码器" />
 
     <Button
       android:id="@+id/encode_video"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="ffmpeg sample three" />
+      android:text="ffmpeg_纯净的编码器" />
 
     <Button
       android:id="@+id/filter_video"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="ffmpeg sample four" />
+      android:text="ffmpeg_对video进行解码和滤波" />
+
+    <Button
+      android:id="@+id/demuxing_decoding_video"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="ffmpeg_对video进行解封装和解码" />
+
+    <Button
+      android:id="@+id/play_video"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="ffmpeg_简单的视频播放器" />
 
   </LinearLayout>
 

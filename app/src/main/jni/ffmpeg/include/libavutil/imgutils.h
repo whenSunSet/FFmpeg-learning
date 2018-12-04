@@ -82,12 +82,16 @@ int av_image_fill_pointers(uint8_t *data[4], enum AVPixelFormat pix_fmt, int hei
                            uint8_t *ptr, const int linesizes[4]);
 
 /**
+ * 申请一块 长宽为 w 、 h，像素格式为 pix_fmt 的 image 内存，这里 pointers 是指向这块内存的指针，linesize 是填充 image 内存。
+ * 被申请的内存，需要使用av_freep(&pointers[0]) 来释放。
  * Allocate an image with size w and h and pixel format pix_fmt, and
  * fill pointers and linesizes accordingly.
  * The allocated image buffer has to be freed by using
  * av_freep(&pointers[0]).
  *
+ * @param align 这个参数是用于缓冲区大小对齐
  * @param align the value to use for buffer size alignment
+ * @return 返回这块申请的内存的大小
  * @return the size in bytes required for the image buffer, a negative
  * error code in case of failure
  */
