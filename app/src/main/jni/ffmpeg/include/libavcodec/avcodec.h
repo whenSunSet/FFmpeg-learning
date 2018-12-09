@@ -4239,6 +4239,7 @@ const char *avcodec_license(void);
 void avcodec_register(AVCodec *codec);
 
 /**
+ * 注册所有在配置的时候定义过的，编解码器，解析器、bit流过滤器。如果你不调用这个方法，那么你调用你自己的方法来支持你需要支持的封装格式
  * Register all the codecs, parsers and bitstream filters which were enabled at
  * configuration time. If you do not call this function you can select exactly
  * which formats you want to support, by using the individual registration

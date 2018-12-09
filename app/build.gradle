@@ -36,6 +36,7 @@ android {
     }
 }
 
+// 创建一个 build_ffmpeg 的 task，其负责运行shell 脚本
 task build_ffmpeg {
     doLast {
         exec {
@@ -44,6 +45,7 @@ task build_ffmpeg {
     }
 }
 
+// 将 build_ffmpeg 这个 task 作为编译的前置任务来执行。
 tasks.whenTaskAdded { task ->
     task.dependsOn 'build_ffmpeg'
 }

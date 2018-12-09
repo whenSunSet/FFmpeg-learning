@@ -8,7 +8,7 @@
 
   <SurfaceView
     android:id="@+id/surface_view"
-    android:layout_width="240dp"
-    android:layout_height="136dp" />
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" />
 
 </android.support.constraint.ConstraintLayout>
